@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pontica | IoT Mosquito Killer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light: #f8fafc;
+            --gray: #475569;
+            --gray-light: #334155;
+            --border-radius: 16px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+            --glow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .mosquito {
+            position: absolute;
+            width: 30px;
+            height: 12px;
+            z-index: 1;
+            filter: brightness(0.8);
+            animation: fly linear infinite;
+        }
+
+        .mosquito-body {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #1a1a1a;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            transform: rotate(-30deg);
+        }
+
+        .mosquito-wing {
+            position: absolute;
+            width: 16px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            top: -4px;
+            left: 6px;
+            animation: wingFlap 0.1s infinite;
+            transform-origin: center;
+        }
+
+        .mosquito-legs {
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: #1a1a1a;
+            top: 8px;
+            left: 2px;
+            transform: rotate(10deg);
+        }
+
+        .mosquito-legs::before, .mosquito-legs::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 1px;
+            background: #1a1a1a;
+            top: -3px;
+        }
+
+        .mosquito-legs::before {
+            left: 2px;
+            transform: rotate(-20deg);
+        }
+
+        .mosquito-legs::after {
+            left: 2px;
+            transform: rotate(20deg);
+        }
+
+        .fog {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(200, 230, 255, 0.1);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 3s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .fog.active {
+            opacity: 0.7;
+        }
+
+        .zap {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px var(--primary);
+            animation: zap 0.5s ease-out forwards;
+            z-index: 3;
+        }
+
+        @keyframes fly {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(100px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(200px, -30px) rotate(180deg);
+            }
+            75% {
+                transform: translate(100px, -80px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes wingFlap {
+            0%, 100% {
+                transform: scaleY(1);
+            }
+            50% {
+                transform: scaleY(0.7);
+            }
+        }
+
+        @keyframes zap {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow), var(--glow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card:hover {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.6);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+
+        .card-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--gray-light);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            color: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+        }
+
+        .form-control::placeholder {
+            color: var(--gray);
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--gray);
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            border-bottom: 1px solid var(--gray-light);
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs li {
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-tabs a {
+            display: block;
+            padding: 12px;
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .nav-tabs a.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .nav-tabs a i {
+            margin-right: 8px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .status-card {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-card h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-card p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .status-online {
+            color: var(--success);
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-offline {
+            color: var(--danger);
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .switch-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 80px;
+            height: 40px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray);
+            transition: var(--transition);
+            border-radius: 40px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 32px;
+            width: 32px;
+            left: 4px;
+            bottom: 4px;
+            background: linear-gradient(135deg, var(--light), #cbd5e1);
+            transition: var(--transition);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, var(--success), #0d966c);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(40px);
+            background: white;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .connection-status span {
+            margin-left: 8px;
+        }
+
+        .connected {
+            color: var(--success);
+        }
+
+        .disconnected {
+            color: var(--danger);
+        }
+
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .timer-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .timer-btn:hover {
+            background: var(--primary);
+        }
+
+        .about-content {
+            text-align: center;
+        }
+
+        .about-content i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(139, 92, 246, 0.7);
+        }
+
+        .about-content h3 {
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .about-content p {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--gray);
+            border: 1px solid var(--gray-light);
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        /* Gear Control Styles */
+        .gear-control-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .gear-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gear-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+        }
+        
+        .gear-button:active {
+            transform: scale(0.95);
+        }
+        
+        .gear-indicator {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .light-indicator {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 15px auto;
+            transition: var(--transition);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .light-off {
+            background: #333;
+            box-shadow: none;
+        }
+        
+        .light-green {
+            background: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.7);
+        }
+        
+        .light-blue {
+            background: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
+        }
+        
+        .light-red {
+            background: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+        }
+        
+        .light-purple {
+            background: #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+        }
+        
+        .light-breathing {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 400% 400%;
+            animation: breathing 4s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        
+        @keyframes breathing {
+            0%, 100% { 
+                background-position: 0% 50%;
+                transform: scale(1);
+            }
+            50% { 
+                background-position: 100% 50%;
+                transform: scale(1.1);
+            }
+        }
+        
+        .battery-display {
+            margin-top: 15px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .offline-mode {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .offline-mode.active {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .gear-info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--gray);
+            text-align: left;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .gear-info h4 {
+            color: var(--light);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .gear-info ul {
+            padding-left: 20px;
+        }
+
+        .gear-info li {
+            margin-bottom: 8px;
+        }
+
+        .stat-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .time-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+            text-align: center;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        .timer-toggle-label {
+            font-weight: 500;
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+
+            .card-header h1 {
+                font-size: 1.7rem;
+            }
+            
+            .nav-tabs a {
+                font-size: 0.8rem;
+                padding: 10px 5px;
+            }
+            
+            .nav-tabs a i {
+                margin-right: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="background"></div>
+    <div class="fog" id="fog"></div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-bolt"></i> PONTICA</h1>
+                <p>IoT Mosquito Elimination System</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username">
+                    <div id="usernameError" class="error-message">Please enter a valid username</div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password">
+                    <div id="passwordError" class="error-message">Please enter a valid password</div>
+                </div>
+                <button id="loginBtn" class="btn">Access System</button>
+                <div id="loginError" class="error-message" style="text-align: center; margin-top: 15px;">Invalid credentials. Try again.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="container hidden">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-bolt"></i> PONTICA</h1>
+                <p>IoT Mosquito Elimination System</p>
+            </div>
+            <div class="card-body">
+                <ul class="nav-tabs">
+                    <li><a href="#control" class="nav-link active"><i class="fas fa-gamepad"></i> Control</a></li>
+                    <li><a href="#gearControl" class="nav-link"><i class="fas fa-cogs"></i> Gear Control</a></li>
+                    <li><a href="#settings" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="#about" class="nav-link"><i class="fas fa-info-circle"></i> About</a></li>
+                </ul>
+
+                <!-- Control Tab -->
+                <div id="control" class="tab-content active">
+                    <!-- Device Status Card (Visible by default) -->
+                    <div class="status-card" id="deviceStatusCard">
+                        <h3>Device Status</h3>
+                        <p id="deviceState" class="status-offline">OFFLINE</p>
+                        
+                        <!-- Time Display Area -->
+                        <div class="stat-time">
+                            <div class="stat-label" id="timeLabel">Active Time</div>
+                            <div class="time-display" id="timeDisplay">0h 0m 0s</div>
+                        </div>
+                    </div>
+                    
+                    <div class="switch-container">
+                        <label class="switch">
+                            <input type="checkbox" id="toggleSwitch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="connection-status">
+                        <i class="fas fa-circle" id="firebaseIcon"></i>
+                        <span id="firebaseStatus">Connecting to Cloud...</span>
+                    </div>
+                    
+                    <!-- Offline Mode Indicator -->
+                    <div class="offline-mode" id="offlineModeIndicator">
+                        <i class="fas fa-wifi"></i> Online Mode (Firebase)
+                    </div>
+                    <br>
+
+                    <!-- Timer Toggle -->
+                    <div class="timer-toggle-container">
+                        <span class="timer-toggle-label">Auto Shutdown Timer</span>
+                        <label class="switch">
+                            <input type="checkbox" id="timerToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Timer Controls (Hidden by default) -->
+                    <div class="status-card hidden" id="timerCard">
+                        <h4>Auto Shutdown Timer</h4>
+                        <div class="timer-display" id="timerDisplay">0h 0m 0s</div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" id="timerHourUp">H+</button>
+                            <button class="timer-btn" id="timerMinUp">M+</button>
+                            <button class="timer-btn" id="timerSecUp">S+</button>
+                            <button class="timer-btn" id="timerReset">Reset</button>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" id="timerHourDown">H-</button>
+                            <button class="timer-btn" id="timerMinDown">M-</button>
+                            <button class="timer-btn" id="timerSecDown">S-</button>
+                            <button class="timer-btn" id="timerSet">Set Timer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gear Control Tab -->
+                <div id="gearControl" class="tab-content">
+                    <div class="gear-control-container">
+                        <button class="gear-button" id="gearButton">
+                            <span id="gearNumber">0</span>
+                        </button>
+                        
+                        <div class="gear-indicator">
+                            Current Gear: <span id="currentGearText">OFF</span>
+                        </div>
+                        
+                        <div class="light-indicator light-off" id="lightIndicator"></div>
+                        
+                        <div class="battery-display">
+                            Battery: <span id="batteryValue">--</span>%
+                        </div>
+                        
+                        <div class="offline-mode" id="gearOfflineMode">
+                            <i class="fas fa-wifi"></i> Online Mode (Firebase)
+                        </div>
+                        
+                        <div class="gear-info">
+                            <h4>Gear Functions</h4>
+                            <ul>
+                                <li><strong>OFF:</strong> Device powered off</li>
+                                <li><strong>Gear 1 (Green):</strong> Spray every 5 minutes</li>
+                                <li><strong>Gear 2 (Blue):</strong> Spray every 10 minutes</li>
+                                <li><strong>Gear 3 (Red):</strong> Spray every 20 minutes</li>
+                                <li><strong>Gear 4 (Purple):</strong> Continuous spray</li>
+                                <li><strong>Gear 5 (Breathing):</strong> No spray, decorative mode</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-content">
+                    <div class="form-group">
+                        <label for="newUsername">New Username</label>
+                        <input type="text" id="newUsername" class="form-control" placeholder="Enter new username">
+                        <div id="usernameSuccess" class="success-message">Username updated successfully</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                        <div id="passwordSuccess" class="success-message">Password updated successfully</div>
+                    </div>
+                    <button id="updateCredentials" class="btn">Update Credentials</button>
+                </div>
+
+                <!-- About Tab -->
+                <div id="about" class="tab-content">
+                    <div class="about-content">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>About Pontica System</h3>
+                        <p>Pontica is an advanced IoT mosquito elimination system that uses smart technology to detect and eliminate mosquitoes efficiently.</p>
+                        <p>Features include:</p>
+                        <ul style="text-align: left; color: var(--gray); margin: 15px 0; padding-left: 20px;">
+                            <li>AI-powered mosquito detection</li>
+                            <li>Remote control via cloud</li>
+                            <li>Real-time monitoring</li>
+                            <li>Energy-efficient operation</li>
+                            <li>Mobile-responsive dashboard</li>
+                            <li>Multi-gear operation modes</li>
+                            <li>Offline control capability</li>
+                        </ul>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-value">v2.1</div>
+                                <div class="stat-label">Version</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="systemStatus">Online</div>
+                                <div class="stat-label">Status</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="logoutBtn" class="btn logout-btn">Logout <i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9gKgUiA_NgPO2LqXHZVPsBaYPD3ECdno",
+            authDomain: "iotmosquitokiller.firebaseapp.com",
+            databaseURL: "https://iotmosquitokiller-default-rtdb.firebaseio.com",
+            projectId: "iotmosquitokiller",
+            storageBucket: "iotmosquitokiller.firebasestorage.app",
+            messagingSenderId: "638507815614",
+            appId: "1:638507815614:web:4f672869580bb7b3ff44ef",
+            measurementId: "G-VQXJD67ND6"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginError = document.getElementById('loginError');
+        const deviceStateEl = document.getElementById('deviceState');
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        const firebaseStatusEl = document.getElementById('firebaseStatus');
+        const firebaseIcon = document.getElementById('firebaseIcon');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const newUsernameInput = document.getElementById('newUsername');
+        const newPasswordInput = document.getElementById('newPassword');
+        const updateCredentialsBtn = document.getElementById('updateCredentials');
+        const usernameSuccess = document.getElementById('usernameSuccess');
+        const passwordSuccess = document.getElementById('passwordSuccess');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const timeLabel = document.getElementById('timeLabel');
+        const background = document.getElementById('background');
+        const fog = document.getElementById('fog');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerToggle = document.getElementById('timerToggle');
+        const deviceStatusCard = document.getElementById('deviceStatusCard');
+        const timerCard = document.getElementById('timerCard');
+
+        // Timer elements
+        const timerHourUp = document.getElementById('timerHourUp');
+        const timerMinUp = document.getElementById('timerMinUp');
+        const timerSecUp = document.getElementById('timerSecUp');
+        const timerHourDown = document.getElementById('timerHourDown');
+        const timerMinDown = document.getElementById('timerMinDown');
+        const timerSecDown = document.getElementById('timerSecDown');
+        const timerReset = document.getElementById('timerReset');
+        const timerSet = document.getElementById('timerSet');
+
+        // Gear Control Elements
+        const gearButton = document.getElementById('gearButton');
+        const gearNumber = document.getElementById('gearNumber');
+        const currentGearText = document.getElementById('currentGearText');
+        const lightIndicator = document.getElementById('lightIndicator');
+        const batteryValue = document.getElementById('batteryValue');
+        const offlineModeIndicator = document.getElementById('offlineModeIndicator');
+        const gearOfflineMode = document.getElementById('gearOfflineMode');
+
+        // Default credentials
+        let currentUsername = "admin";
+        let currentPassword = "admin123";
+
+        // Background animation variables
+        let activeTime = 0;
+        let mosquitoes = [];
+        let activeTimeInterval;
+        let autoShutdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+        let shutdownInterval;
+        let lastTurnOffTime = null;
+        let isTimerActive = false;
+        let isTimerSet = false;
+
+        // Gear control variables
+        let currentGear = 0;
+        let isOnlineMode = true;
+        let batteryLevel = 0;
+
+        // Initialize background animation
+        function initBackground() {
+            // Create initial mosquitoes
+            for (let i = 0; i < 15; i++) {
+                createMosquito();
+            }
+            
+            // Update active time
+            activeTimeInterval = setInterval(() => {
+                if (toggleSwitch.checked) {
+                    // Update active time if timer is not active
+                    if (!isTimerActive) {
+                        activeTime += 1;
+                        updateTimeDisplay();
+                    }
+                    
+                    // Update timer if active
+                    if (isTimerActive) {
+                        updateTimerCountdown();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Create a new mosquito
+        function createMosquito() {
+            const mosquito = document.createElement('div');
+            mosquito.className = 'mosquito';
+            
+            // Random position
+            const startX = Math.random() * (window.innerWidth - 30);
+            const startY = Math.random() * (window.innerHeight - 12);
+            
+            mosquito.style.left = startX + 'px';
+            mosquito.style.top = startY + 'px';
+            
+            // Create mosquito body
+            const mosquitoBody = document.createElement('div');
+            mosquitoBody.className = 'mosquito-body';
+            mosquito.appendChild(mosquitoBody);
+            
+            // Create mosquito wing
+            const mosquitoWing = document.createElement('div');
+            mosquitoWing.className = 'mosquito-wing';
+            mosquito.appendChild(mosquitoWing);
+            
+            // Create mosquito legs
+            const mosquitoLegs = document.createElement('div');
+            mosquitoLegs.className = 'mosquito-legs';
+            mosquito.appendChild(mosquitoLegs);
+            
+            // Random animation duration
+            const duration = 15 + Math.random() * 25;
+            mosquito.style.animationDuration = duration + 's';
+            
+            background.appendChild(mosquito);
+            mosquitoes.push(mosquito);
+            
+            // Remove mosquito after animation completes and create a new one
+            setTimeout(() => {
+                if (mosquito.parentNode) {
+                    mosquito.parentNode.removeChild(mosquito);
+                    mosquitoes = mosquitoes.filter(m => m !== mosquito);
+                    createMosquito();
+                }
+            }, duration * 1000);
+        }
+
+        // Update time display (active time or timer)
+        function updateTimeDisplay() {
+            if (isTimerActive) {
+                // Show timer countdown
+                timeLabel.textContent = "Time Remaining";
+                timeDisplay.textContent = `${autoShutdownTimer.hours}h ${autoShutdownTimer.minutes}m ${autoShutdownTimer.seconds}s`;
+            } else {
+                // Show active time
+                timeLabel.textContent = "Active Time";
+                const hours = Math.floor(activeTime / 3600);
+                const minutes = Math.floor((activeTime % 3600) / 60);
+                const seconds = activeTime % 60;
+                timeDisplay.textContent = `${hours}h ${minutes}m ${seconds}s`;
+            }
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            timerDisplay.textContent = `${autoShutdownTimer.hours}h ${autoShutdownTimer.minutes}m ${autoShutdownTimer.seconds}s`;
+        }
+
+        // Update timer countdown
+        function updateTimerCountdown() {
+            if (!isTimerActive) return;
+            
+            // Calculate total seconds
+            let totalSeconds = autoShutdownTimer.hours * 3600 + autoShutdownTimer.minutes * 60 + autoShutdownTimer.seconds;
+            
+            if (totalSeconds <= 0) {
+                // Timer expired, turn off device
+                toggleSwitch.checked = false;
+                toggleSwitch.dispatchEvent(new Event('change'));
+                isTimerActive = false;
+                isTimerSet = false;
+                updateTimeDisplay();
+                timerDisplay.textContent = "0h 0m 0s";
+                alert("Auto shutdown: Device turned off after timer expired.");
+                return;
+            }
+            
+            // Decrease total seconds by 1
+            totalSeconds--;
+            
+            // Update timer values
+            autoShutdownTimer.hours = Math.floor(totalSeconds / 3600);
+            autoShutdownTimer.minutes = Math.floor((totalSeconds % 3600) / 60);
+            autoShutdownTimer.seconds = totalSeconds % 60;
+            
+            // Update displays
+            updateTimeDisplay();
+            updateTimerDisplay();
+        }
+
+        // Start auto shutdown timer
+        function startAutoShutdownTimer() {
+            if (shutdownInterval) clearInterval(shutdownInterval);
+            
+            const totalSeconds = autoShutdownTimer.hours * 3600 + autoShutdownTimer.minutes * 60 + autoShutdownTimer.seconds;
+            
+            if (totalSeconds <= 0) return;
+            
+            isTimerActive = true;
+            isTimerSet = true;
+            
+            // Update display to show timer
+            updateTimeDisplay();
+        }
+
+        // Reset active time if device was off for more than 30 seconds
+        function checkActiveTimeReset() {
+            if (lastTurnOffTime) {
+                const timeSinceLastOff = Date.now() - lastTurnOffTime;
+                if (timeSinceLastOff > 30000) { // 30 seconds
+                    activeTime = 0;
+                    updateTimeDisplay();
+                }
+            }
+            lastTurnOffTime = null;
+        }
+
+        // Toggle timer controls visibility
+        function toggleTimerControls() {
+            if (timerToggle.checked) {
+                // Show timer controls, hide device status
+                timerCard.classList.remove('hidden');
+                deviceStatusCard.classList.add('hidden');
+            } else {
+                // Show device status, hide timer controls
+                deviceStatusCard.classList.remove('hidden');
+                timerCard.classList.add('hidden');
+            }
+        }
+
+        // Gear control functionality
+        function updateGearDisplay() {
+            gearNumber.textContent = currentGear;
+            
+            // Update gear text and light indicator
+            switch(currentGear) {
+                case 0:
+                    currentGearText.textContent = "OFF";
+                    lightIndicator.className = "light-indicator light-off";
+                    break;
+                case 1:
+                    currentGearText.textContent = "GEAR 1";
+                    lightIndicator.className = "light-indicator light-green";
+                    break;
+                case 2:
+                    currentGearText.textContent = "GEAR 2";
+                    lightIndicator.className = "light-indicator light-blue";
+                    break;
+                case 3:
+                    currentGearText.textContent = "GEAR 3";
+                    lightIndicator.className = "light-indicator light-red";
+                    break;
+                case 4:
+                    currentGearText.textContent = "GEAR 4";
+                    lightIndicator.className = "light-indicator light-purple";
+                    break;
+                case 5:
+                    currentGearText.textContent = "GEAR 5";
+                    lightIndicator.className = "light-indicator light-breathing";
+                    break;
+            }
+            
+            // Update Firebase if online
+            if (isOnlineMode) {
+                db.ref('/arduinoPower/gear').set(currentGear)
+                    .catch(err => console.log("Firebase error: " + err.message));
+            } else {
+                // Send command via local HTTP request in offline mode
+                sendOfflineCommand('gear', currentGear);
+            }
+        }
+
+        // Function to send commands in offline mode
+        function sendOfflineCommand(command, value) {
+            // This would send an HTTP request to the ESP8266's local IP
+            // For now, we'll just log it
+            console.log(`Offline command: ${command} = ${value}`);
+            
+            // In a real implementation, you would use:
+            // fetch(`http://192.168.4.1/${command}?value=${value}`)
+            //   .then(response => response.text())
+            //   .then(data => console.log(data))
+            //   .catch(error => console.log('Error:', error));
+        }
+
+        // Monitor Firebase connection for gear control
+        function monitorFirebaseConnection() {
+            firebase.database().ref(".info/connected").on("value", snap => {
+                if (snap.val() === true) {
+                    isOnlineMode = true;
+                    offlineModeIndicator.innerHTML = '<i class="fas fa-wifi"></i> Online Mode (Firebase)';
+                    offlineModeIndicator.classList.remove('active');
+                    gearOfflineMode.innerHTML = '<i class="fas fa-wifi"></i> Online Mode (Firebase)';
+                    gearOfflineMode.classList.remove('active');
+                    
+                    // Sync current gear with Firebase
+                    db.ref('/arduinoPower/gear').set(currentGear);
+                } else {
+                    isOnlineMode = false;
+                    offlineModeIndicator.innerHTML = '<i class="fas fa-wifi-slash"></i> Offline Mode (Local)';
+                    offlineModeIndicator.classList.add('active');
+                    gearOfflineMode.innerHTML = '<i class="fas fa-wifi-slash"></i> Offline Mode (Local)';
+                    gearOfflineMode.classList.add('active');
+                }
+            });
+        }
+
+        // Listen to gear changes from Firebase
+        function listenToGearChanges() {
+            db.ref('/arduinoPower/gear').on('value', snapshot => {
+                const gear = snapshot.val();
+                if (gear !== null && gear !== currentGear) {
+                    currentGear = gear;
+                    updateGearDisplay();
+                }
+            });
+        }
+
+        // Listen to battery level from Firebase
+        function listenToBatteryLevel() {
+            db.ref('/arduinoPower/battery').on('value', snapshot => {
+                const battery = snapshot.val();
+                if (battery !== null) {
+                    batteryLevel = battery;
+                    batteryValue.textContent = batteryLevel;
+                }
+            });
+        }
+
+        // Initialize gear control
+        function initGearControl() {
+            monitorFirebaseConnection();
+            listenToGearChanges();
+            listenToBatteryLevel();
+            updateGearDisplay();
+        }
+
+        // Login functionality
+        loginBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            // Reset error states
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            loginError.style.display = 'none';
+            
+            let isValid = true;
+            
+            if (username === '') {
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (password === '') {
+                passwordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (isValid) {
+                if (username === currentUsername && password === currentPassword) {
+                    loginScreen.classList.add('hidden');
+                    dashboard.classList.remove('hidden');
+                    initializeFirebase();
+                    initBackground();
+                    initGearControl();
+                } else {
+                    loginError.style.display = 'block';
+                }
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            dashboard.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            usernameInput.value = '';
+            passwordInput.value = '';
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            loginError.style.display = 'none';
+            
+            // Clear intervals
+            clearInterval(activeTimeInterval);
+            clearInterval(shutdownInterval);
+            
+            // Remove all mosquitoes
+            mosquitoes.forEach(mosquito => {
+                if (mosquito.parentNode) {
+                    mosquito.parentNode.removeChild(mosquito);
+                }
+            });
+            mosquitoes = [];
+            
+            // Reset fog
+            fog.classList.remove('active');
+        });
+
+        // Tab navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all links and tabs
+                navLinks.forEach(l => l.classList.remove('active'));
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to clicked link and corresponding tab
+                link.classList.add('active');
+                const tabId = link.getAttribute('href').substring(1);
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Update credentials
+        updateCredentialsBtn.addEventListener('click', () => {
+            const newUsername = newUsernameInput.value.trim();
+            const newPassword = newPasswordInput.value.trim();
+            
+            // Reset success messages
+            usernameSuccess.style.display = 'none';
+            passwordSuccess.style.display = 'none';
+            
+            if (newUsername !== '') {
+                currentUsername = newUsername;
+                usernameSuccess.style.display = 'block';
+                newUsernameInput.value = '';
+            }
+            
+            if (newPassword !== '') {
+                currentPassword = newPassword;
+                passwordSuccess.style.display = 'block';
+                newPasswordInput.value = '';
+            }
+        });
+
+        // Timer controls
+        timerHourUp.addEventListener('click', () => {
+            autoShutdownTimer.hours = Math.min(23, autoShutdownTimer.hours + 1);
+            updateTimerDisplay();
+        });
+        
+        timerMinUp.addEventListener('click', () => {
+            autoShutdownTimer.minutes = Math.min(59, autoShutdownTimer.minutes + 1);
+            updateTimerDisplay();
+        });
+        
+        timerSecUp.addEventListener('click', () => {
+            autoShutdownTimer.seconds = Math.min(59, autoShutdownTimer.seconds + 1);
+            updateTimerDisplay();
+        });
+        
+        timerHourDown.addEventListener('click', () => {
+            autoShutdownTimer.hours = Math.max(0, autoShutdownTimer.hours - 1);
+            updateTimerDisplay();
+        });
+        
+        timerMinDown.addEventListener('click', () => {
+            autoShutdownTimer.minutes = Math.max(0, autoShutdownTimer.minutes - 1);
+            updateTimerDisplay();
+        });
+        
+        timerSecDown.addEventListener('click', () => {
+            autoShutdownTimer.seconds = Math.max(0, autoShutdownTimer.seconds - 1);
+            updateTimerDisplay();
+        });
+        
+        timerReset.addEventListener('click', () => {
+            autoShutdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+            updateTimerDisplay();
+            isTimerActive = false;
+            isTimerSet = false;
+            
+            // Show active time again
+            updateTimeDisplay();
+        });
+        
+        timerSet.addEventListener('click', () => {
+            if (autoShutdownTimer.hours === 0 && autoShutdownTimer.minutes === 0 && autoShutdownTimer.seconds === 0) {
+                alert("Please set a timer value greater than 0.");
+                return;
+            }
+            
+            if (toggleSwitch.checked) {
+                startAutoShutdownTimer();
+                alert(`Auto shutdown timer set for ${autoShutdownTimer.hours}h ${autoShutdownTimer.minutes}m ${autoShutdownTimer.seconds}s`);
+            } else {
+                isTimerSet = true;
+                alert("Timer set. It will activate when you turn on the device.");
+            }
+        });
+
+        // Timer toggle functionality
+        timerToggle.addEventListener('change', toggleTimerControls);
+
+        // Gear button click handler
+        gearButton.addEventListener('click', () => {
+            currentGear = (currentGear + 1) % 6; // Cycle through 0-5
+            updateGearDisplay();
+        });
+
+        // Firebase functionality
+        function initializeFirebase() {
+            // Monitor Firebase connection
+            firebase.database().ref(".info/connected").on("value", snap => {
+                if (snap.val() === true) {
+                    firebaseStatusEl.textContent = "Cloud Connected";
+                    firebaseStatusEl.classList.remove('disconnected');
+                    firebaseStatusEl.classList.add('connected');
+                    firebaseIcon.classList.remove('disconnected');
+                    firebaseIcon.classList.add('connected');
+                } else {
+                    firebaseStatusEl.textContent = "Cloud Disconnected";
+                    firebaseStatusEl.classList.remove('connected');
+                    firebaseStatusEl.classList.add('disconnected');
+                    firebaseIcon.classList.remove('connected');
+                    firebaseIcon.classList.add('disconnected');
+                }
+            });
+
+            // Listen to device status
+            db.ref('/arduinoPower/status').on('value', snapshot => {
+                const status = snapshot.val();
+                deviceStateEl.textContent = (status === 'ON') ? 'ONLINE' : 'OFFLINE';
+                deviceStateEl.className = (status === 'ON') ? 'status-online' : 'status-offline';
+                toggleSwitch.checked = (status === 'ON');
+                
+                // Update fog effect based on device status
+                if (status === 'ON') {
+                    fog.classList.add('active');
+                    checkActiveTimeReset();
+                    
+                    // Start auto shutdown timer if set
+                    if (isTimerSet && (autoShutdownTimer.hours > 0 || autoShutdownTimer.minutes > 0 || autoShutdownTimer.seconds > 0)) {
+                        startAutoShutdownTimer();
+                    }
+                } else {
+                    fog.classList.remove('active');
+                    lastTurnOffTime = Date.now();
+                    isTimerActive = false;
+                    
+                    // Show active time again
+                    updateTimeDisplay();
+                }
+            });
+
+            // Update status when toggle is clicked
+            toggleSwitch.addEventListener('change', () => {
+                const newStatus = toggleSwitch.checked ? 'ON' : 'OFF';
+                db.ref('/arduinoPower/status').set(newStatus)
+                    .catch(err => alert("Error updating Firebase: " + err.message));
+                
+                // Update fog effect
+                if (newStatus === 'ON') {
+                    fog.classList.add('active');
+                    checkActiveTimeReset();
+                    
+                    // Start auto shutdown timer if set
+                    if (isTimerSet && (autoShutdownTimer.hours > 0 || autoShutdownTimer.minutes > 0 || autoShutdownTimer.seconds > 0)) {
+                        startAutoShutdownTimer();
+                    }
+                } else {
+                    fog.classList.remove('active');
+                    lastTurnOffTime = Date.now();
+                    isTimerActive = false;
+                    
+                    // Show active time again
+                    updateTimeDisplay();
+                }
+            });
+        }
+
+        // Allow login with Enter key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !dashboard.classList.contains('hidden')) {
+                loginBtn.click();
+            }
+        });
+
+        // Initialize displays
+        updateTimerDisplay();
+        updateTimeDisplay();
+        updateGearDisplay();
+    </script>
+</body>
+</html>
