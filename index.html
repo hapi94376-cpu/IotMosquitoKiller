@@ -242,6 +242,7 @@
 
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .form-group label {
@@ -271,6 +272,19 @@
 
         .form-control::placeholder {
             color: var(--gray);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .password-toggle:hover {
+            color: var(--light);
         }
 
         .btn {
@@ -673,13 +687,6 @@
             }
         }
         
-        .battery-display {
-            margin-top: 15px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
         .offline-mode {
             background: rgba(245, 158, 11, 0.2);
             border: 1px solid rgba(245, 158, 11, 0.5);
@@ -798,6 +805,7 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" class="form-control" placeholder="Enter password">
+                    <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
                     <div id="passwordError" class="error-message">Please enter a valid password</div>
                 </div>
                 <button id="loginBtn" class="btn">Access System</button>
@@ -894,10 +902,6 @@
                         
                         <div class="light-indicator light-off" id="lightIndicator"></div>
                         
-                        <div class="battery-display">
-                            Battery: <span id="batteryValue">--</span>%
-                        </div>
-                        
                         <div class="offline-mode" id="gearOfflineMode">
                             <i class="fas fa-wifi"></i> Online Mode (Firebase)
                         </div>
@@ -926,6 +930,7 @@
                     <div class="form-group">
                         <label for="newPassword">New Password</label>
                         <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                        <i class="fas fa-eye password-toggle" id="newPasswordToggle"></i>
                         <div id="passwordSuccess" class="success-message">Password updated successfully</div>
                     </div>
                     <button id="updateCredentials" class="btn">Update Credentials</button>
@@ -991,6 +996,8 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const newPasswordToggle = document.getElementById('newPasswordToggle');
         const usernameError = document.getElementById('usernameError');
         const passwordError = document.getElementById('passwordError');
         const loginError = document.getElementById('loginError');
@@ -1029,7 +1036,6 @@
         const gearNumber = document.getElementById('gearNumber');
         const currentGearText = document.getElementById('currentGearText');
         const lightIndicator = document.getElementById('lightIndicator');
-        const batteryValue = document.getElementById('batteryValue');
         const offlineModeIndicator = document.getElementById('offlineModeIndicator');
         const gearOfflineMode = document.getElementById('gearOfflineMode');
 
@@ -1050,7 +1056,21 @@
         // Gear control variables
         let currentGear = 0;
         let isOnlineMode = true;
-        let batteryLevel = 0;
+
+        // Password toggle functionality
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggle.classList.toggle('fa-eye');
+            passwordToggle.classList.toggle('fa-eye-slash');
+        });
+
+        newPasswordToggle.addEventListener('click', () => {
+            const type = newPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            newPasswordInput.setAttribute('type', type);
+            newPasswordToggle.classList.toggle('fa-eye');
+            newPasswordToggle.classList.toggle('fa-eye-slash');
+        });
 
         // Initialize background animation
         function initBackground() {
@@ -1301,22 +1321,10 @@
             });
         }
 
-        // Listen to battery level from Firebase
-        function listenToBatteryLevel() {
-            db.ref('/arduinoPower/battery').on('value', snapshot => {
-                const battery = snapshot.val();
-                if (battery !== null) {
-                    batteryLevel = battery;
-                    batteryValue.textContent = batteryLevel;
-                }
-            });
-        }
-
         // Initialize gear control
         function initGearControl() {
             monitorFirebaseConnection();
             listenToGearChanges();
-            listenToBatteryLevel();
             updateGearDisplay();
         }
 
